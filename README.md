@@ -6,3 +6,10 @@ A new Flutter project.
 
 For help getting started with Flutter, view our online
 [documentation](https://flutter.io/).
+
+
+## Connected to Firebase
+
+### For iOS
+
+Add GoogleService-Info.plist to the /ios/Runner directory

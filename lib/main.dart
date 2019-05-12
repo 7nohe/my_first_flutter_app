@@ -43,7 +43,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Eatock',
+      title: 'EaTock',
       theme: ThemeData(
         primaryColor: Colors.white,
       ),
@@ -60,6 +60,7 @@ class HomePage extends StatefulWidget {
 class HomePageState extends State<HomePage> {
   final Set<WordPair> _saved = Set<WordPair>();
   final TextStyle _biggerFont = const TextStyle(fontSize: 18.0);
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -77,7 +78,6 @@ class HomePageState extends State<HomePage> {
   void _pushSaved() {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        // Add 20 lines from here...
         builder: (BuildContext context) {
           final Iterable<ListTile> tiles = _saved.map(
             (WordPair pair) {
@@ -106,19 +106,29 @@ class HomePageState extends State<HomePage> {
   }
 
   Widget _buildBody(BuildContext context) {
-    // TODO: get actual snapshot from Cloud Firestore
-    return _buildList(context, dummySnapshot);
+    // return _buildList(context, dummySnapshot);
+    return StreamBuilder<QuerySnapshot>(
+      stream: Firestore.instance.collection('stockItems').snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) return LinearProgressIndicator();
+        if (snapshot.hasError) {
+          return new Text('Error: ${snapshot.error}');
+        } else {
+          return _buildList(context, snapshot.data.documents);
+        }
+      },
+    );
   }
 
-  Widget _buildList(BuildContext context, List<Map> snapshot) {
+  Widget _buildList(BuildContext context, List<DocumentSnapshot> snapshot) {
     return ListView(
       padding: const EdgeInsets.all(16.0),
       children: snapshot.map((data) => _buildRow(context, data)).toList(),
     );
   }
 
-  Widget _buildRow(BuildContext context, Map data) {
-    final _stockItem = StockItem.fromMap(data);
+  Widget _buildRow(BuildContext context, DocumentSnapshot data) {
+    final _stockItem = StockItem.fromSnapshot(data);
 
     return ListTile(
       title: Text(
@@ -126,14 +136,12 @@ class HomePageState extends State<HomePage> {
         style: _biggerFont,
       ),
       trailing: Icon(
-        // Add the lines from here...
-        // alreadySaved ? Icons.favorite : Icons.favorite_border,
-        Icons.favorite_border,
-        // color: alreadySaved ? Colors.red : null,
-        color: Colors.red
-      ),
+          // Add the lines from here...
+          // alreadySaved ? Icons.favorite : Icons.favorite_border,
+          Icons.favorite_border,
+          // color: alreadySaved ? Colors.red : null,
+          color: Colors.red),
       onTap: () {
-        // Add 9 lines from here...
         // setState(() {
         //   if (alreadySaved) {
         //     _saved.remove(pair);
